@@ -1,0 +1,99 @@
+# === SLURM Configuration ===
+# Consult your cluster's documentation if you are unsure about the values below.
+job_name: "propella-4b-finepdfs-por"
+partition: "boost_usr_prod"
+account: "OELLM_prod2026"
+# qos: "boost_qos_dbg"
+qos: "normal"
+cpus_per_node: 32 # cpu is not really needed for our workload.
+memory_per_node: "0" # "0" for all available memory per node
+gres_per_node: "gpu:4" # Generic resources per node. Examples: "gpu:4", "a100:1", "gpu:h100:8"
+# time_limit: "29:00" # Max walltime on cluster. Jobs are automatically resubmitted if they exceed time limit.
+time_limit: "23:55:00" # Max walltime on cluster. Jobs are automatically resubmitted if they exceed time limit.
+# Additional SBATCH arguments (optional)
+additional_sbatch_args:
+  # exclude: "node[001-010]"  # Exclude specific nodes
+
+
+# === Scaling Configuration ===
+# The total number of nodes will be num_inference_servers * num_nodes_per_inference_server.
+num_inference_servers: 123
+num_nodes_per_inference_server: 1 # Increase this only of your model requires more than 1 node per inference server.
+
+# === Environment Configuration ===
+pixi_manifest: "pixi.toml"  # Path to the pixi manifest file. Edit only if you want to use one of the pre-installed environments (see README.md).
+pixi_env: "cuda-sglang"  # Name of the pixi environment to use (see README.md).
+env_vars:
+  HF_HUB_OFFLINE: "1" # you should download data and model beforehand
+  PYTHONDONTWRITEBYTECODE: "1"
+
+# === Inference Server Configuration ===
+inference_server_command: > 
+  python -m sglang.launch_server \
+    --model-path /leonardo_scratch/fast/AIFAC_L01_028/models/propella-1-4b \
+    --host 0.0.0.0 \
+    --port 64776 \
+    --context-length 65536 \
+    --max-running-requests 200 \
+    --chunked-prefill-size 8192 \
+    --enable-mixed-chunk \
+    --num-continuous-decode-steps 8 \
+    --grammar-backend llguidance \
+    --mem-fraction-static 0.65 \
+    --tensor-parallel-size 4 \
+    --log-level warning \
+    --log-level-http warning \
+    --decode-log-interval 300
+
+
+# === Health Check Configuration ===
+# max_wait_minutes is the maximum time to wait for the API server to become healthy.
+# make sure it is reasonable for loading the model. larger models will take longer.
+health_check_max_wait_minutes: 30  # Maximum time to wait for API server to become healthy.
+health_check_interval_seconds: 20  # Interval between health check attempts
+
+
+# === API Configuration ===
+# make sure port is the same as in inference_server_command.
+api_base_url: "http://localhost:64776/v1"
+api_type: "chat-completion"  # "chat-completion" or "completion"
+# make sure model is set to the exact same string as in inference_server_command. 
+model: "/leonardo_scratch/fast/AIFAC_L01_028/models/propella-1-4b"
+
+
+# === Dataset Configuration ===
+dataset_type: "parquet" # must one of "hf", "hf-disk" or "parquet"
+dataset_path: "/leonardo_work/AIFAC_L01_028/datasets/finepdfs-synt/data/por_Latn/train-984-shards" # hf identifier or local path
+# id_column_name must contain unique string identifiers for each row. The IDs will be used to match responses with input rows.
+id_column_name: "id"
+# input_column_name must contain strings for completion or messages for chat-completion.
+input_column_name: "messages"
+apply_udf: format_propella_prompt # Can be set to a name of a UDF in udf.py to apply to dataset rows.
+apply_udf_kwargs: {} # kwargs to pass to the UDF.
+
+
+# Dataset Loading Arguments
+dataset_kwargs:
+  # name: "deu_Latn"
+  # split: "train"
+  # cache_dir: "/path/to/cache"
+
+
+# === Output Configuration ===
+output_path: "/leonardo_work/AIFAC_L01_028/datasets/finepdfs-propella-4b-responses/por_Latn" # responses will be saved here
+
+
+# === Completion Arguments ===
+# for completion and chat-completion
+completions_kwargs:
+  response_format:
+    type: json_schema
+    json_schema:
+      name: AnnotationResponse
+      strict: true
+      schema: {"additionalProperties":false,"description":"Property annotation pydantic model for LLM pretraining data.\nIt captures all 18 properties as defined in the annotation guidelines for consistently identifying high-value content for language model training.","example":{"audience_level":"expert","business_sector":["academic_research","technology_software"],"commercial_bias":"none","content_integrity":"complete","content_length":"substantial","content_quality":"excellent","content_ratio":"mostly_content","content_safety":"safe","content_type":["analytical","instructional"],"country_relevance":["germany"],"educational_value":"high","information_density":"dense","one_sentence_description":"API reference for payment endpoints and error codes.","pii_presence":"no_pii","reasoning_indicators":"analytical","regional_relevance":["european"],"technical_content":["scientific","data_heavy"],"time_sensitivity":"slowly_changing"},"properties":{"content_integrity":{"description":"Completeness and technical quality of the content itself","enum":["complete","mostly_complete","fragment","severely_degraded"],"title":"ContentIntegrity","type":"string"},"content_ratio":{"description":"Ratio of meaningful content vs navigation/UI elements","enum":["complete_content","mostly_content","mixed_content","mostly_navigation","minimal_content"],"title":"ContentRatio","type":"string"},"content_length":{"description":"Amount of substantive content, ignoring navigation and boilerplate","enum":["substantial","moderate","brief","minimal"],"title":"ContentLength","type":"string"},"one_sentence_description":{"description":"Ultra-short neutral description of the document. Exactly one sentence. Target 8–15 words (soft max 20). Neutral tone; avoid boilerplate intros and calls to action.","maxLength":200,"title":"One Sentence Description","type":"string"},"content_type":{"description":"Primary purpose and type of content - always return an array (one or more types)","items":{"description":"Primary purpose and type of content","enum":["analytical","instructional","reference","procedural","qa_structured","conversational","creative","transactional","boilerplate","news_report","opinion_editorial","review_critique","technical_documentation","specification_standard","legal_document","press_release","structured_data","source_code"],"title":"ContentType","type":"string"},"maxItems":5,"minItems":1,"title":"Content Type","type":"array"},"business_sector":{"description":"Industry sector(s) - always return an array (one or more sectors)","items":{"description":"Industry domain(s) for sector classification (multi-select)","enum":["academic_research","education_sector","technology_software","hardware_electronics","healthcare_medical","pharmaceutical_biotech","financial_services","legal_services","government_public","manufacturing_industrial","mining_resources","chemicals_materials","energy_utilities","retail_commerce","wholesale_distribution","real_estate_construction","transportation_logistics","automotive_industry","telecommunications","media_entertainment","advertising_marketing","hospitality_tourism","agriculture_food","environmental_services","aerospace_defense","insurance_industry","nonprofit_ngo","consulting_professional","human_resources","security_cyber","gaming_industry","gambling_betting","travel_aviation","food_beverage_hospitality","consumer_goods","general_interest","other"],"title":"BusinessSector","type":"string"},"maxItems":10,"minItems":1,"title":"Business Sector","type":"array"},"technical_content":{"description":"Type and intensity of specialized technical knowledge - always return an array (one or more types)","items":{"description":"Type and intensity of specialized technical knowledge","enum":["code_heavy","math_heavy","scientific","data_heavy","engineering","basic_technical","non_technical"],"title":"TechnicalContent","type":"string"},"minItems":1,"title":"Technical Content","type":"array"},"information_density":{"description":"Ratio of valuable information to redundancy, padding, and repetition","enum":["dense","adequate","moderate","thin","empty"],"title":"InformationDensity","type":"string"},"content_quality":{"description":"Overall quality considering writing excellence, substantive value, and presentation","enum":["excellent","good","adequate","poor","unacceptable"],"title":"ContentQuality","type":"string"},"audience_level":{"description":"Intended sophistication level and background knowledge assumptions","enum":["expert","advanced","general","beginner","youth","children"],"title":"AudienceLevel","type":"string"},"commercial_bias":{"description":"How much commercial interests influence objectivity and informational value","enum":["none","minimal","moderate","heavy","pure_marketing"],"title":"CommercialBias","type":"string"},"time_sensitivity":{"description":"How time-sensitive the content is","enum":["evergreen","slowly_changing","regularly_updating","time_sensitive"],"title":"TimeSensitivity","type":"string"},"content_safety":{"description":"Presence of inappropriate, harmful, or legally problematic content","enum":["safe","mild_concerns","nsfw","harmful","illegal"],"title":"ContentSafety","type":"string"},"educational_value":{"description":"Potential for teaching, learning, and knowledge transfer","enum":["high","moderate","basic","minimal","none"],"title":"EducationalValue","type":"string"},"reasoning_indicators":{"description":"Presence and quality of logical reasoning, analysis, and explanatory content","enum":["analytical","explanatory","basic_reasoning","minimal","none"],"title":"ReasoningIndicators","type":"string"},"pii_presence":{"description":"Whether the content contains personally identifiable information","enum":["no_pii","contains_pii"],"title":"PiiPresence","type":"string"},"regional_relevance":{"description":"Primary regional, cultural, or geopolitical sphere(s) - always return an array (one or multiple regions)","items":{"description":"Primary regional, cultural, or geopolitical sphere(s)","enum":["european","north_american","east_asian","south_asian","southeast_asian","middle_eastern","sub_saharan_african","latin_american","oceanian","central_asian","russian_sphere","global","culturally_neutral","indeterminate"],"title":"RegionalRelevance","type":"string"},"maxItems":3,"minItems":1,"title":"Regional Relevance","type":"array"},"country_relevance":{"description":"Specific country/countries the content mentions or is relevant for (or special values for supranational/non-country-specific) - always return an array (one or more countries/special values)","items":{"anyOf":[{"description":"Country names for country relevance classification.\nBased on ISO 3166-1 standard - the authoritative international standard \nfor country codes maintained by the International Organization for Standardization.\n\nIncludes all 249 entities from ISO 3166-1: 193 UN member states, \n2 UN observer states, plus dependent territories and special areas.\n\nReferences:\n- https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes\n- https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area","enum":["afghanistan","albania","algeria","andorra","angola","antigua_and_barbuda","argentina","armenia","australia","austria","azerbaijan","bahamas","bahrain","bangladesh","barbados","belarus","belgium","belize","benin","bhutan","bolivia","bosnia_and_herzegovina","botswana","brazil","brunei","bulgaria","burkina_faso","burundi","cabo_verde","cambodia","cameroon","canada","central_african_republic","chad","chile","china","colombia","comoros","congo","congo_democratic_republic","cook_islands","costa_rica","croatia","cuba","cyprus","czech_republic","denmark","djibouti","dominica","dominican_republic","ecuador","egypt","el_salvador","equatorial_guinea","eritrea","estonia","eswatini","ethiopia","fiji","finland","france","gabon","gambia","georgia","germany","ghana","greece","grenada","guatemala","guinea","guinea_bissau","guyana","haiti","honduras","hungary","iceland","india","indonesia","iran","iraq","ireland","israel","italy","ivory_coast","jamaica","japan","jordan","kazakhstan","kenya","kiribati","north_korea","south_korea","kosovo","kuwait","kyrgyzstan","laos","latvia","lebanon","lesotho","liberia","libya","liechtenstein","lithuania","luxembourg","madagascar","malawi","malaysia","maldives","mali","malta","marshall_islands","mauritania","mauritius","mexico","micronesia","moldova","monaco","mongolia","montenegro","morocco","mozambique","myanmar","namibia","nauru","nepal","netherlands","new_zealand","nicaragua","niger","nigeria","niue","north_macedonia","norway","oman","pakistan","palau","palestine","panama","papua_new_guinea","paraguay","peru","philippines","poland","portugal","qatar","romania","russia","rwanda","saint_kitts_and_nevis","saint_lucia","saint_vincent_and_the_grenadines","samoa","san_marino","sao_tome_and_principe","saudi_arabia","senegal","serbia","seychelles","sierra_leone","singapore","slovakia","slovenia","solomon_islands","somalia","south_africa","south_sudan","spain","sri_lanka","sudan","suriname","sweden","switzerland","syria","tajikistan","tanzania","thailand","timor_leste","togo","tonga","trinidad_and_tobago","tunisia","turkey","turkmenistan","tuvalu","uganda","ukraine","united_arab_emirates","united_kingdom","united_states","uruguay","uzbekistan","vanuatu","vatican_city","venezuela","vietnam","yemen","zambia","zimbabwe","aland_islands","american_samoa","anguilla","antarctica","aruba","ascension_island","bermuda","british_virgin_islands","cayman_islands","christmas_island","cocos_islands","curacao","falkland_islands","faroe_islands","french_guiana","french_polynesia","gibraltar","greenland","guadeloupe","guam","guernsey","hong_kong","isle_of_man","jersey","macau","martinique","mayotte","montserrat","new_caledonia","norfolk_island","northern_mariana_islands","pitcairn_islands","puerto_rico","reunion","saint_barthelemy","saint_helena","saint_martin","saint_pierre_and_miquelon","sint_maarten","svalbard_and_jan_mayen","taiwan","tokelau","tristan_da_cunha","turks_and_caicos_islands","us_virgin_islands","wallis_and_futuna","western_sahara"],"title":"Country","type":"string"},{"description":"Special values for country relevance classification from annotation guidelines.\nThese are used when content doesn't relate to specific countries.","enum":["supranational","none"],"title":"CountryRelevanceSpecial","type":"string"}]},"maxItems":10,"minItems":1,"title":"Country Relevance","type":"array"}},"required":["content_integrity","content_ratio","content_length","one_sentence_description","content_type","business_sector","technical_content","information_density","content_quality","audience_level","commercial_bias","time_sensitivity","content_safety","educational_value","reasoning_indicators","pii_presence","regional_relevance","country_relevance"],"title":"_AnnotationResponse","type":"object","x-guidance":{"whitespace_flexible":false}}
+
+
+# === Connection Settings ===
+max_connections: 300 # Use less connections for large models. Can use 100+ for smaller models.
+max_retries: 3
