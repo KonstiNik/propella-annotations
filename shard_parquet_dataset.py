@@ -6,16 +6,18 @@ import pyarrow.dataset as pads
 from tqdm.auto import tqdm
 
 
-d_in = Path("/leonardo_work/AIFAC_L01_028/datasets/HuggingFaceFW/fineweb-2/data/pol_Latn")
-d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/fineweb-2-984-shards/pol_Latn")
+# d_in = Path("/leonardo_work/AIFAC_L01_028/datasets/HuggingFaceFW/fineweb-2/data/pol_Latn")
+# d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/fineweb-2-984-shards/pol_Latn")
 # d_in = Path("/leonardo_work/AIFAC_L01_028/datasets/HuggingFaceFW/finepdfs/data/nob_Latn/train")
 # d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/finepdfs-synt/data/nob_Latn/train-8-shards")
 # d_in = Path("/leonardo_work/AIFAC_L01_028/datasets/nemotron-cc-10k-sample")
 # d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/nemotron-cc-10k-sample-8-shards")
 # d_in = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons")
 # d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons-492-shards")
-# num_shards = 984
-num_shards = 492
+d_in = Path("/leonardo_work/AIFAC_L01_028/datasets/HPLT3-parquet/fin_Latn")
+d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/HPLT3-parquet-984-shards/fin_Latn")
+num_shards = 246
+# num_shards = 492
 # num_shards = 246
 # num_shards = 123
 # num_shards = 8
@@ -38,7 +40,7 @@ print(f"Number of rows per output shard: {num_rows_per_shard:_}")
 
 schema = ds.schema
 
-batches_iter = ds.to_batches(batch_size=2_000)
+batches_iter = ds.to_batches(batch_size=10_000)
 
 def create_writer():
     writer = pq.ParquetWriter(temp_output_file, schema, compression="zstd")
@@ -79,7 +81,6 @@ with tqdm(total=num_rows, desc="Sharding dataset") as pbar:
     if writer is not None:
         writer.close()
         temp_output_file.rename(d_out / f"shard_{shard:06d}.parquet")
-
 ds = pads.dataset(d_out)
 print(f"Number of rows in output dataset: {ds.count_rows():_}")
 print(f"Number of output files: {len(list(ds.get_fragments()))}")
