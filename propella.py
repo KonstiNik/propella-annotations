@@ -886,7 +886,7 @@ def truncate_content(content: str, max_content_chars: int) -> str:
     return content
 
 
-with open(Path("property_descriptions.md"), "r") as f:
+with open(Path(__file__).parent / "property_descriptions.md", "r") as f:
     property_descriptions = f.read()
 
 
