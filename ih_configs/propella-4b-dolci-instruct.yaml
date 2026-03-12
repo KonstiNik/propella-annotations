@@ -1,5 +1,5 @@
 # === SLURM Configuration ===
-job_name: "propella-4b-dolci"
+job_name: "propella-4b-dolci-instruct"
 partition: "boost_usr_prod"
 account: "OELLM_prod2026"
 # qos: "normal"

@@ -5,7 +5,7 @@ plain text (User: ... / Assistant: ...), and writes sharded parquet files
 with 'id' and 'text' columns ready for inference-hive + the format_propella_prompt UDF.
 
 Usage:
-    python prepare_datasets/prepare_dolci.py \
+    python prepare_datasets/prepare_dolci_instruct.py \
         --output /leonardo_work/AIFAC_L01_028/datasets/dolci-instruct-sft-prepared \
         --num-shards 8
 """

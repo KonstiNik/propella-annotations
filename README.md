@@ -78,7 +78,7 @@ Your dataset must be converted to parquet files containing:
 
 The `format_propella_prompt` UDF (defined in `udf.py`) handles formatting the text into the Propella chat prompt at inference time, so your preparation script only needs to output plain text.
 
-If your dataset needs custom preprocessing (e.g. flattening chat messages), write a preparation script in `prepare_datasets/`. See `prepare_datasets/prepare_dolci.py` for an example.
+If your dataset needs custom preprocessing (e.g. flattening chat messages), write a preparation script in `prepare_datasets/`. See `prepare_datasets/prepare_dolci_instruct.py` for an example.
 
 For large datasets, submit the preparation as a SLURM job rather than running on the login node.
 
@@ -103,15 +103,15 @@ The [Dolci-Instruct-SFT](https://huggingface.co/datasets/allenai/Dolci-Instruct-
 
 ```bash
 # 1. Prepare the full dataset (submits a SLURM job)
-bash prepare_datasets/submit_prepare_dolci.sh
+bash prepare_datasets/submit_prepare_dolci_instruct.sh
 
 # 2. Once the job completes, validate and run
 cd inference-hive
 pixi shell -e cuda-sglang
-python validate_config.py --config ../ih_configs/propella-4b-dolci.yaml
-python validate_data.py --config ../ih_configs/propella-4b-dolci.yaml
-python create_run.py --config ../ih_configs/propella-4b-dolci.yaml --output dolci-run1
-python submit.py --run-dir dolci-run1 --limit 1
+python validate_config.py --config ../ih_configs/propella-4b-dolci-instruct.yaml
+python validate_data.py --config ../ih_configs/propella-4b-dolci-instruct.yaml
+python create_run.py --config ../ih_configs/propella-4b-dolci-instruct.yaml --output dolci-instruct-run1
+python submit.py --run-dir dolci-instruct-run1 --limit 1
 ```
 
 ### Benchmarking with a small sample
@@ -120,13 +120,13 @@ To test performance before running the full dataset, prepare a small subset:
 
 ```bash
 # Prepare only 5k rows in a single shard
-bash prepare_datasets/submit_prepare_dolci.sh \
+bash prepare_datasets/submit_prepare_dolci_instruct.sh \
     --output /path/to/dolci-instruct-sft-prepared-5k \
     --num-shards 1 \
     --max-rows 5000
 ```
 
-Then create a config pointing to that output (or copy `propella-4b-dolci.yaml` and update `dataset_path`) and run as usual.
+Then create a config pointing to that output (or copy `propella-4b-dolci-instruct.yaml` and update `dataset_path`) and run as usual.
 
 ## Benchmarks
 

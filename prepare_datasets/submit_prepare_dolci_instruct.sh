@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Submit the Dolci preparation as a SLURM job on the debug queue.
+# Submit the Dolci-Instruct preparation as a SLURM job on the debug queue.
 #
 # Usage:
-#   bash prepare_datasets/submit_prepare_dolci.sh [--output /path/to/output] [--num-shards 8]
+#   bash prepare_datasets/submit_prepare_dolci_instruct.sh [--output /path/to/output] [--num-shards 8]
 #
 # Defaults:
 #   output:     /leonardo_work/AIFAC_L01_028/datasets/dolci-instruct-sft-prepared
@@ -39,14 +39,14 @@ fi
 LOG_DIR="${REPO_ROOT}/logs"
 mkdir -p "${LOG_DIR}"
 
-echo "Submitting Dolci preparation job..."
+echo "Submitting Dolci-Instruct preparation job..."
 echo "  Dataset:    ${DATASET_PATH}"
 echo "  Output:     ${OUTPUT}"
 echo "  Num shards: ${NUM_SHARDS}"
 [[ -n "${MAX_ROWS}" ]] && echo "  Max rows:   ${MAX_ROWS}"
 
 sbatch \
-    --job-name="prepare-dolci" \
+    --job-name="prepare-dolci-instruct" \
     --partition="boost_usr_prod" \
     --account="OELLM_prod2026" \
     --qos="boost_qos_dbg" \
@@ -55,8 +55,8 @@ sbatch \
     --cpus-per-task=4 \
     --mem="64G" \
     --time="00:10:00" \
-    --output="${LOG_DIR}/prepare-dolci-%j.out" \
-    --error="${LOG_DIR}/prepare-dolci-%j.err" \
-    --wrap="cd ${REPO_ROOT}/inference-hive && pixi run -e cuda-sglang python ../prepare_datasets/prepare_dolci.py --dataset-path ${DATASET_PATH} --output ${OUTPUT} --num-shards ${NUM_SHARDS} ${EXTRA_ARGS}"
+    --output="${LOG_DIR}/prepare-dolci-instruct-%j.out" \
+    --error="${LOG_DIR}/prepare-dolci-instruct-%j.err" \
+    --wrap="cd ${REPO_ROOT}/inference-hive && pixi run -e cuda-sglang python ../prepare_datasets/prepare_dolci_instruct.py --dataset-path ${DATASET_PATH} --output ${OUTPUT} --num-shards ${NUM_SHARDS} ${EXTRA_ARGS}"
 
 echo "Job submitted. Check logs in ${LOG_DIR}/"
