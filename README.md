@@ -1,11 +1,10 @@
 # Propella Annotations
 
-Annotate datasets with [Propella](https://huggingface.co/OpenEuroLLM/propella-1-4b) quality properties using [inference-hive](https://github.com/OpenEuroLLM/inference-hive) for scalable batch inference on SLURM clusters.
+Annotate datasets with [Propella](https://huggingface.co/ellamind/propella-1-4b) quality properties using [inference-hive](https://github.com/ellamind/inference-hive) for scalable batch inference on SLURM clusters.
 
 ## Prerequisites
 
 - Access to a SLURM cluster with GPUs (tested on Leonardo, 4x A100 per node)
-- The Propella model downloaded locally (e.g. via `hf download`)
 - [pixi](https://pixi.sh) installed
 
 ## Setup
@@ -15,7 +14,7 @@ Clone this repository and then clone `inference-hive` inside it:
 ```bash
 git clone git@github.com:OpenEuroLLM/propella-annotations.git
 cd propella-annotations
-git clone <inference-hive-repo-url> inference-hive
+git clone https://github.com/ellamind/inference-hive.git inference-hive
 ```
 
 Copy the required files into the inference-hive working directory and install dependencies:
@@ -35,7 +34,7 @@ After setup, download the Propella model and any datasets you need. Run these fr
 
 ```bash
 # Download the Propella model
-pixi run -e cuda-sglang hf download OpenEuroLLM/propella-1-4b \
+pixi run -e cuda-sglang hf download ellamind/propella-1-4b \
     --local-dir /path/to/models/propella-1-4b
 
 # Download a dataset (example: Dolci-Instruct-SFT)
@@ -46,6 +45,7 @@ pixi run -e cuda-sglang hf download allenai/Dolci-Instruct-SFT \
 
 ## Running an existing dataset
 
+This works, if the dataset is already prepared and has a corresponding config in `ih_configs/`. For example, the `propella-4b-dolci-instruct.yaml` config points to the Dolci-Instruct-SFT dataset.
 Pick a config from `ih_configs/` and run:
 
 ```bash
@@ -130,7 +130,9 @@ Then create a config pointing to that output (or copy `propella-4b-dolci-instruc
 
 ## Benchmarks
 
-Single-node throughput on Leonardo Booster (1 node, 4x NVIDIA A100 32GB) with `OpenEuroLLM/propella-1-4b` and Dolci-Instruct-SFT data, using SGLang with `llguidance` grammar backend and JSON schema constrained decoding.
+All benchmarks use `OpenEuroLLM/propella-1-4b` with Dolci-Instruct-SFT data, SGLang with `llguidance` grammar backend and JSON schema constrained decoding.
+
+### Leonardo Booster (CINECA) — 4x A100 64GB
 
 **DP=4 (data parallel)**
 
@@ -149,3 +151,34 @@ Single-node throughput on Leonardo Booster (1 node, 4x NVIDIA A100 32GB) with `O
 | Documents | mem-fraction-static | Inference time | Throughput (docs/s) | Throughput (docs/h) |
 |----------:|--------------------:|---------------:|--------------------:|--------------------:|
 |      5000 |                0.65 |          3.9m  |                21.1 |              76,081 |
+
+### HoreKa (KIT) — 4x A100 40GB
+
+**DP=4 (data parallel)**
+
+| Documents | mem-fraction-static | Inference time | Throughput (docs/s) | Throughput (docs/h) |
+|----------:|--------------------:|---------------:|--------------------:|--------------------:|
+|      5000 |                0.65 |          1.8m  |                41.7 |             150,166 |
+
+## Troubleshooting
+
+### Pixi environment breaks system `curl` (HoreKa)
+
+**Symptom**: Health checks silently fail — the sglang server starts ("fired up and ready to roll") but is never detected as healthy. The job loops until the SLURM time limit kills it.
+
+**Cause**: The pixi environment sets `LD_LIBRARY_PATH` to include its own OpenSSL. System `curl` picks up pixi's `libssl`/`libcrypto` instead of the system ones, but system `/lib64/libldap.so.2` still expects the system OpenSSL's `EVP_md2` symbol, which pixi's OpenSSL doesn't provide:
+
+```
+curl: symbol lookup error: /lib64/libldap.so.2: undefined symbol: EVP_md2, version OPENSSL_3.0.0
+```
+
+**Fix**: The health check in `create_run.py` uses `python -c "import urllib.request; ..."` instead of `curl`. Python lives entirely within the pixi environment, avoiding the library conflict.
+
+### Triton JIT linker error (HoreKa)
+
+**Symptom**: sglang crashes during startup with a Triton compilation error mixing i386 and x86-64 architectures.
+
+**Cause**: System modules (e.g. `compiler/intel`) pollute `LIBRARY_PATH`, causing Triton's JIT linker to pick up wrong 32-bit object files.
+
+**Fix**: Add `LIBRARY_PATH: ""` to `env_vars` in the inference-hive config YAML to clear the polluted path before the server starts.
+

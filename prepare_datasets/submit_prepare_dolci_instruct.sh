@@ -5,7 +5,7 @@
 #   bash prepare_datasets/submit_prepare_dolci_instruct.sh [--output /path/to/output] [--num-shards 8]
 #
 # Defaults:
-#   output:     /leonardo_work/AIFAC_L01_028/datasets/dolci-instruct-sft-prepared
+#   output:     /home/hk-project-p0024002/orcid_swz4229/propella_annotation/data/Dolci-Instruct-SFT/dolci-instruct-sft-prepared
 #   num-shards: 8
 
 set -euo pipefail
@@ -14,8 +14,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Defaults
-DATASET_PATH="/leonardo_scratch/large/userexternal/knikolao/data"
-OUTPUT="/leonardo_scratch/large/userexternal/knikolao/data/dolci-instruct-sft-prepared"
+DATASET_PATH="/home/hk-project-p0024002/orcid_swz4229/propella_annotation/data/Dolci-Instruct-SFT"
+OUTPUT="/home/hk-project-p0024002/orcid_swz4229/propella_annotation/data/Dolci-Instruct-SFT/dolci-instruct-sft-prepared"
 NUM_SHARDS=8
 MAX_ROWS=""
 
@@ -47,9 +47,8 @@ echo "  Num shards: ${NUM_SHARDS}"
 
 sbatch \
     --job-name="prepare-dolci-instruct" \
-    --partition="boost_usr_prod" \
-    --account="OELLM_prod2026" \
-    --qos="boost_qos_dbg" \
+    --partition="dev_cpuonly" \
+    --account="hk-project-p0024002" \
     --nodes=1 \
     --ntasks=1 \
     --cpus-per-task=4 \
