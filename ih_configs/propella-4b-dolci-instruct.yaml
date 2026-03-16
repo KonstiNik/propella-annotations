@@ -30,7 +30,7 @@ inference_server_command: >
   python -m sglang.launch_server \
     --model-path /home/hk-project-p0024002/orcid_swz4229/propella_annotation/models/propella-1-4b \
     --host 0.0.0.0 \
-    --port 64776 \
+    --port ${IH_PORT} \
     --context-length 65536 \
     --max-running-requests 200 \
     --chunked-prefill-size 8192 \
@@ -50,7 +50,7 @@ health_check_interval_seconds: 20
 
 
 # === API Configuration ===
-api_base_url: "http://localhost:64776/v1"
+api_base_url: "http://localhost:${IH_PORT}/v1"
 api_type: "chat-completion"
 model: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/models/propella-1-4b"
 
