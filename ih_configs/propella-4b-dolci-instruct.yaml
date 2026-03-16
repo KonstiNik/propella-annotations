@@ -1,10 +1,9 @@
 # === SLURM Configuration ===
-job_name: "propella-4b-dolci-instruct"
-# partition: "dev_accelerated"
-partition: "accelerated"
-account: "hk-project-p0024002"
+job_name: "propella-annotate"
+partition: "boost_usr_prod"
+account: "oellm_prod2026"
 qos: "normal"
-cpus_per_node: 16
+cpus_per_node: 32
 memory_per_node: "0"
 # memory_per_node: "64G"
 gres_per_node: "gpu:4"
@@ -14,7 +13,7 @@ additional_sbatch_args:
 
 
 # === Scaling Configuration ===
-num_inference_servers: 1
+num_inference_servers: 8
 num_nodes_per_inference_server: 1
 
 # === Environment Configuration ===
@@ -28,7 +27,7 @@ env_vars:
 # === Inference Server Configuration ===
 inference_server_command: >
   python -m sglang.launch_server \
-    --model-path /home/hk-project-p0024002/orcid_swz4229/propella_annotation/models/propella-1-4b \
+    --model-path //leonardo_scratch/large/userexternal/knikolao/propella_annotation/models/propella-1-4b \
     --host 0.0.0.0 \
     --port ${IH_PORT} \
     --context-length 65536 \
@@ -52,12 +51,12 @@ health_check_interval_seconds: 20
 # === API Configuration ===
 api_base_url: "http://localhost:${IH_PORT}/v1"
 api_type: "chat-completion"
-model: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/models/propella-1-4b"
+model: "//leonardo_scratch/large/userexternal/knikolao/propella_annotation/models/propella-1-4b"
 
 
 # === Dataset Configuration ===
 dataset_type: "parquet"
-dataset_path: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/data/Dolci-Instruct-SFT/dolci-instruct-sft-prepared"
+dataset_path: "//leonardo_scratch/large/userexternal/knikolao/propella_annotation/data/Dolci-Instruct-SFT/dolci-instruct-sft-prepared"
 id_column_name: "id"
 input_column_name: "messages"
 apply_udf: format_propella_prompt
@@ -67,7 +66,7 @@ dataset_kwargs:
 
 
 # === Output Configuration ===
-output_path: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/output"
+output_path: "//leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-SFT"
 
 
 # === Completion Arguments ===
