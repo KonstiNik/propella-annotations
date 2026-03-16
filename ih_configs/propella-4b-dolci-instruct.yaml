@@ -1,16 +1,15 @@
 # === SLURM Configuration ===
 job_name: "propella-4b-dolci-instruct"
-partition: "dev_accelerated"
-# partition: "accelerated"
+# partition: "dev_accelerated"
+partition: "accelerated"
 account: "hk-project-p0024002"
 qos: "normal"
 cpus_per_node: 16
-# memory_per_node: "0"
-memory_per_node: "64G"
+memory_per_node: "0"
+# memory_per_node: "64G"
 gres_per_node: "gpu:4"
 # gres_per_node: "gpu:1"
-# time_limit: "23:55:00"
-time_limit: "00:30:00"
+time_limit: "03:00:00"
 additional_sbatch_args:
 
 
@@ -58,7 +57,7 @@ model: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/models/prope
 
 # === Dataset Configuration ===
 dataset_type: "parquet"
-dataset_path: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/data/Dolci-Instruct-SFT/dolci-instruct-sft-prepared-5k"
+dataset_path: "/home/hk-project-p0024002/orcid_swz4229/propella_annotation/data/Dolci-Instruct-SFT/dolci-instruct-sft-prepared"
 id_column_name: "id"
 input_column_name: "messages"
 apply_udf: format_propella_prompt
