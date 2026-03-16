@@ -130,35 +130,20 @@ Then create a config pointing to that output (or copy `propella-4b-dolci-instruc
 
 ## Benchmarks
 
-All benchmarks use `OpenEuroLLM/propella-1-4b` with Dolci-Instruct-SFT data, SGLang with `llguidance` grammar backend and JSON schema constrained decoding.
+All benchmarks use `OpenEuroLLM/propella-1-4b` with SGLang, `llguidance` grammar backend and JSON schema constrained decoding. DP=4 (data parallel), `mem-fraction-static=0.65`.
 
 ### Leonardo Booster (CINECA) — 4x A100 64GB
 
-**DP=4 (data parallel)**
-
-| Documents | mem-fraction-static | Inference time | Throughput (docs/s) | Throughput (docs/h) |
-|----------:|--------------------:|---------------:|--------------------:|--------------------:|
-|      5000 |                0.65 |          1.3m  |                62.0 |             223,193 |
-
-**TP=4 (tensor parallel)**
-
-| Documents | mem-fraction-static | Inference time | Throughput (docs/s) | Throughput (docs/h) |
-|----------:|--------------------:|---------------:|--------------------:|--------------------:|
-|      5000 |                0.65 |          2.8m  |                29.6 |             106,469 |
-
-**1x GPU (no parallelism)**
-
-| Documents | mem-fraction-static | Inference time | Throughput (docs/s) | Throughput (docs/h) |
-|----------:|--------------------:|---------------:|--------------------:|--------------------:|
-|      5000 |                0.65 |          3.9m  |                21.1 |              76,081 |
+| Dataset | Documents | Inference time | Throughput (docs/s) | Throughput (docs/h) |
+|---|----------:|---------------:|--------------------:|--------------------:|
+| Dolci-Instruct-SFT | 5000 | 1.3m | 62.0 | 223,193 |
+| Dolci-Think-SFT-7B | 5000 | 4.6m | 18.3 | 65,909 |
 
 ### HoreKa (KIT) — 4x A100 40GB
 
-**DP=4 (data parallel)**
-
-| Documents | mem-fraction-static | Inference time | Throughput (docs/s) | Throughput (docs/h) |
-|----------:|--------------------:|---------------:|--------------------:|--------------------:|
-|      5000 |                0.65 |          1.8m  |                41.7 |             150,166 |
+| Dataset | Documents | Inference time | Throughput (docs/s) | Throughput (docs/h) |
+|---|----------:|---------------:|--------------------:|--------------------:|
+| Dolci-Instruct-SFT | 5000 | 1.8m | 41.7 | 150,166 |
 
 ## Troubleshooting
 
