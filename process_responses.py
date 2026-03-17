@@ -10,8 +10,12 @@ import polars as pl
 # d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/nemotron-cc-10k-propella-4b-annotations")
 # d = Path("/leonardo_work/AIFAC_L01_028/datasets/nemotron-cc-high-actual-propella-4b-responses/high-actual/*.parquet")
 # d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/nemotron-cc-high-actual-propella-4b-annotations/high-actual")
-d = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons-propella-4b-responses/*.parquet")
-d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons-propella-4b-annotations")
+# d = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons-propella-4b-responses/*.parquet")
+# d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons-propella-4b-annotations")
+# d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-SFT/*.parquet")
+# d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-SFT-annotations")
+d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-SFT-7B/*.parquet")
+d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-SFT-7B-annotations")
 d_out.mkdir(exist_ok=True, parents=True)
 
 # Polars schema matching AnnotationResponse from propella.py
