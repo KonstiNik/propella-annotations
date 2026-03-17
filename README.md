@@ -128,6 +128,16 @@ bash prepare_datasets/submit_prepare_dolci_instruct.sh \
 
 Then create a config pointing to that output (or copy `propella-4b-dolci-instruct.yaml` and update `dataset_path`) and run as usual.
 
+## Post-processing outputs
+
+Inference-hive stores raw API responses in a nested format (`id` + `response` struct). To flatten the annotations into individual columns, set the input/output paths in `process_responses.py` and run:
+
+```bash
+pixi run -e cuda-sglang python process_responses.py
+```
+
+This extracts the JSON content from `response.choices[0].message.content`, parses it, and unnests it into one column per annotation field (e.g. `content_quality`, `educational_value`, etc.).
+
 ## Benchmarks
 
 All benchmarks use `OpenEuroLLM/propella-1-4b` with SGLang, `llguidance` grammar backend and JSON schema constrained decoding. DP=4 (data parallel), `mem-fraction-static=0.65`.
