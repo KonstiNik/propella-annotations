@@ -14,8 +14,14 @@ import polars as pl
 # d_out = Path("/leonardo_work/AIFAC_L01_028/datasets/german-commons-propella-4b-annotations")
 # d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-SFT/*.parquet")
 # d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-SFT-annotations")
-d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-SFT-7B/*.parquet")
-d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-SFT-7B-annotations")
+# d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-SFT-7B/*.parquet")
+# d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-SFT-7B-annotations")
+# d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-DPO-7B/*.parquet")
+# d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-DPO-7B-annotations")
+# d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-DPO-32B/*.parquet")
+# d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Think-DPO-32B-annotations")
+d = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-DPO/*.parquet")
+d_out = Path("/leonardo_scratch/large/userexternal/knikolao/propella_annotation/output/Dolci-Instruct-DPO-annotations")
 d_out.mkdir(exist_ok=True, parents=True)
 
 # Polars schema matching AnnotationResponse from propella.py
